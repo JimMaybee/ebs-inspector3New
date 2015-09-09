@@ -1,0 +1,124 @@
+<div ng-app="ngApp"  ng-controller="ngCtl">
+
+    <div id="templateList" style="position:absolute; top:50px; left:50px; height:600px; width:250px; border:5px solid; padding:10px;">
+        TEMPLATES:&nbsp;&nbsp;&nbsp;
+        <button onclick="addTemplate()">Add</button>&nbsp;
+        <button ng-click="trace()">Delete</button>
+        <br /><br />
+        <li ng-repeat="x in templates">
+            Template: {{x.templateName}}
+        </li>
+    </div>
+
+    <div id="projList" style="position:absolute; top:50px; left:350px; height:600px; width:400px; border:5px solid; padding:10px;">
+        PROJECTS:&nbsp;&nbsp;&nbsp;
+        <button onclick="addProject()">Add</button>&nbsp;
+        <button onclick="deleteProject()">Delete</button>
+        <br /><br />
+        <li ng-repeat="x in templates[iTemplate].projects">
+            {{x.projectName}}
+        </li>
+    </div>
+
+    <div id="insList" style="position:absolute; top:50px; left:800px; height:600px; width:250px; border:5px solid; padding:10px;">
+        INSPECTIONS:&nbsp;&nbsp;&nbsp;
+        <button ng-click="$scope.addInspection()">Add</button>&nbsp;
+        <button onclick="$scope.deleteInspection()">Delete</button>
+        <br /><br />
+        <li ng-repeat="x in templates[iTemplate].projects[iProject].inspections">
+            #{{x.inspectionNumber}} - {{x.inspectorName}}
+        </li>
+    </div>
+
+    <div id="insForm" style="position:absolute; top:50px; left:1100px; height:600px; width:250px; border:5px solid; padding:10px;">
+        INSPECTION DETAILS:&nbsp;&nbsp;&nbsp;
+        Ins #: <input type="text" ng-model="iProject"><br />
+        Name: <input type="text" ng-model="templates[iTemplate].projects[iProject].inspections[iInspection].inspectorName">
+    </div>
+
+    <!-- <div id="insList2" style="position:absolute; top:50px; left:1250px; height:600px; width:250px; border:5px solid; padding:10px;">
+        ALL INSPECTIONS:&nbsp;&nbsp;&nbsp;
+        <br /><br />
+        <li ng-repeat="x in allInspections">
+            #{{x.inspectionNumber}} - {{x.inspectorName}}
+        </li>
+    </div> -->
+</div>
+
+<script>
+    var templateID = "mf8Vo8scen";
+    var app = angular.module('ngApp', []);
+    app.controller('ngCtl', function($scope) {
+        $scope.firstName = "John";
+        $scope.lastName = "Doe";
+        $scope.templates = [
+            {templateName: 'Inspection Report', projects:
+                    [{projectName: 'Project1', clientName: 'Client1', inspections:
+                            [{inspectionNumber: 1, inspectorName: 'Ins1'},
+                                {inspectionNumber: 2, inspectorName: 'Ins2'},
+                                {inspectionNumber: 3, inspectorName: 'Ins3'}]},
+                        {projectName: 'Project2', clientName: 'Client2', inspections:
+                                [{inspectionNumber: 1, inspectorName: 'Ins2-1'},
+                                    {inspectionNumber: 2, inspectorName: 'Ins2-2'},
+                                    {inspectionNumber: 3, inspectorName: 'Ins2-3'}]}
+                    ]}
+        ];
+        $scope.iTemplate = 0;
+        $scope.iProject = 1;
+        $scope.iInspection = 0;
+        $scope.project = $scope.templates[0].projects;
+        $scope.addInspection = function() {
+            $scope.templates[0].projects[0].inspections.push({inspectionNumber:4, inspectorName: 'Ins4'})
+        };
+        $scope.allInspections = [];
+        //$scope.allInspections = $scope.templates[0].projects[0].inspections;
+        //$scope.allInspections.push($scope.templates[0].projects[1].inspections[0]);
+        for (var i1 in $scope.templates) {
+            for (var i2 in $scope.templates[i1].projects) {
+                for (var i3 in $scope.templates[i1].projects[i2].inspections) {
+                    $scope.allInspections.push($scope.templates[i1].projects[i2].inspections[i3]);
+                }
+            }
+        }
+
+        $scope.trace = function() {
+            console.log("Clicked" + serverTable.length + " " + $scope.templates[0].projects.length);
+            for (var iRow in serverTable) {
+                $scope.templates[0].projects.push({projectName: serverTable[iRow].Description});
+            }
+        };
+
+    });
+
+
+    // Fully qualified
+    console.log("Ins #=" + templates[0].projects[0].inspections[0].inspectorName);
+
+    // Active rows
+    var template = templates[0];
+    var project = template.projects[1];
+    var inspection = project.inspections[0];
+    console.log("Template = " + template.templateName);
+    console.log("Project = " + project.projectName);
+    console.log("Inspector = " + inspection.inspectorName);
+
+    // Active lists
+    var projects = template.projects;
+    var inspections = project.inspections;
+    templates.push({templateName: "Template2"});
+    templates.splice(0,1);
+    listRows(templates,"templateName");
+
+
+
+    function addTemplate() {
+        console.log("Add template clicked.");
+    }
+
+    function listRows(obj, field) {
+        for (var iRow in obj) {
+            console.log("Row " + iRow + "=" + obj[iRow][field]);
+        }
+    }
+
+</script>

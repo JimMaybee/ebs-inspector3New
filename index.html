@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- <meta charset="utf-8"> -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>EBS-Inspector 3.0</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://www.parsecdn.com/js/parse-1.2.12.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+    <!-- <script src="jsPDF/dist/jspdf.debug.js"></script> -->
+    <script src="cursor.js"></script>
+    <script src="forms.js"></script>
+    <script src="generator.js"></script>
+    <script src="getDataValue.js"></script>
+    <script src="if.js"></script>
+    <script src="server.js"></script>
+    <script src="styles.js"></script>
+    <script src="support.js"</script>
+    <script src="testData.js"></script>
+
+    <!--
+    <script src="canvas.js"></script>
+    <script src="canvasObject.js"> </script>
+    <script src="macros.js"></script>
+    <script src="photos.js"></script>
+    <script src="repeat.js"></script>
+    <script src="reportPaging.js"></script>
+    <script src="reports.js"></script>
+    <script src="save.js"></script>
+    <script src="selects.js"></script>
+    -->
+
+</head>
+<body>
+
+<div id="testSelect" style="position:absolute; top:25px; left:50px; height:40px; width:612px;"> </div>
+<div id="editBtns" style="position:absolute; top:25px; left:300px; height:40px; width:300px;">
+    <button onclick="runTest()">Run</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <button onclick="saveTest()">Save</button>
+</div>
+
+<textarea id="testXML"  style="position:absolute; top:50px; left:50px; height:600px; width:1000px; border:1px solid; font-size:14px;"></textarea>
+<div id="formtest"   style="position:absolute; top:50px; left:1060px; height:600px; width:612px; border:1px solid;"></div>
+
+</body>
+<script>
+
+    "use strict";
+
+    $(document).ready(function () {
+        serverSortField = "Seq";
+        serverLoadTable("EBTest", ["objectId", "Name", "TemplateXML"], "loadSuccess()");
+    });
+
+    function loadSuccess() {
+        var html = "Select test:&nbsp;&nbsp;<select id='TestName'>\n";
+        for (var iTest = 0; iTest<serverTable.length; iTest++) {
+            var name = serverTable[iTest].Name;
+            html += "<option value='" + name + "'>" + name + "</option>\n";
+        }
+        html += "</select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick='loadTest()'>Load</button>";
+        $("#testSelect").empty();
+        $("#testSelect").append(html);
+        return;
+    }
+
+    function loadTest() {
+        var xml = serverTable[$("#testSelect :selected").index()].TemplateXML;
+        $("#testXML").empty();
+        $("#testXML").val(xml);
+    }
+
+    function runTest() {
+        var xml = $("#testXML").val();
+        if (xml.length == 0) {
+            alert("No test is loaded.");
+            return;
+        }
+        var xml = xml.replaceAll("‘", "'").replaceAll("’", "'").replaceAll('"', "'").replaceAll("“", "'").replaceAll("”", "'");
+        $("#testXML").val(xml);
+
+        var xmlWithOutComments = "";
+        var aLines = xml.split("\n");
+        for (var iLine = 0; iLine < aLines.length; iLine++) {
+            var line = aLines[iLine].trim();
+            if (!line.hasPrefix("//") && line.length > 0) {
+                xmlWithOutComments += line + "\n";
+            }
+        }
+        $("#formtest").empty();
+        setDefaultStyles();
+        //init();
+        //startNewGenerate();
+        executeDirectives(xmlWithOutComments);
+    }
+
+    function saveTest() {
+        if (serverTable[$("#testSelect :selected").index()].objectId == undefined) {
+            alert("No test is loaded.");
+
+        } else {
+            var xml = $("#testXML").val();
+            serverUpdateRow("EBTest", serverTable[$("#testSelect :selected").index()].objectId, {TemplateXML: xml}, "onUpdateSuccess()");
+            serverTable[0].TemplateXML = xml;
+        }
+    }
+
+    function onUpdateSuccess() {
+        console.log("Updated.");
+    }
+
+</script>
+</body>
+</html>
