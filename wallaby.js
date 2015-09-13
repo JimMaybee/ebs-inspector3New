@@ -5,8 +5,7 @@ module.exports = function (wallaby) {
   ],
 
   tests: [
-      'test/*Test.js'
+      'tests/*Test.js'
   ]
-    testFramework: 'mocha'
   };
 };

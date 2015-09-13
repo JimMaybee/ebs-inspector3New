@@ -27,15 +27,15 @@ var validActions = "" +
 
 
 // Active directive information - previously properties
-var activeDirective = "";    // Used in error messages
-var activeAttributes = {};   // Used by directive functions to get attributes
-var activeEnclosedXML;       // Used by directives that have enclosed directives - to execute these directives
-var recursionLevel;          // Recursion level - starts with 0.  Max 10.
+var activeDirective = "";      // Used in error messages
+var activeAttributes = {};     // Used by directive functions to get attributes
+var activeEnclosedXML;         // Used by directives that have enclosed directives - to execute these directives
+var recursionLevel = -1;       // Recursion level. Incremented with each call to executeDirectives. Starts with 0.  Max 10.
 
-var showErrorMessages;       // Error messages are displayed at various times - such as the first pass on report generation
-var maxErrorMessageCount;    // Sets the max number of errors to be displayed.
-var numberOfErrorMessages;   // The number of error messages generated.  Compared against max to determine when no more error messages should be displayed.
-var traceMode;               // Set by TraceOn/ TraceOff directives.  Controls directive tracing to the console.
+var showErrorMessages = true;  // Error messages are displayed at various times - such as the first pass on report generation
+var maxErrorMessageCount = 3;  // Sets the max number of errors to be displayed.
+var numberOfErrorMessages = 0  // The number of error messages generated.  Compared against max to determine when no more error messages should be displayed.
+var traceMode = false;         // Set by TraceOn/ TraceOff directives.  Controls directive tracing to the console.
 
 /*
 

@@ -7,7 +7,7 @@ var defineVars = {};
 var setMemoHeightValue;   // Value from SetMemoHeight directive
 var setPhotoHeightValue;  // Value from SetPhotoHeight directive
 var setPhotoWidthValue;   // Value from SetPhotoHeight directive
-var varValue;             // Value set by SetVar directive
+var varValue = 0;         // Value set by SetVar directive
 
 "use strict";
 
@@ -68,7 +68,7 @@ function defineMacro() {
 }
 
 function runMacro() {
-    var name =getStringAttribute("name", true);
+    var name = getStringAttribute("name", true);
 
     if (macros[name] == undefined) {
         displayErrorMessage(name, "Invalid RunMacro name");

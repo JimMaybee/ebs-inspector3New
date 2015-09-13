@@ -1,18 +1,15 @@
 
 "use strict";
 
-
 var pageNumber;
 var numberOfPages;
 var currentPageMask;
 var pageMasks ={};
-
-
-validationErrorCount = 0;
-param1 = "";
-param2 = "";
-
+var validationErrorCount = 0;
+var param1 = "";
+var param2 = "";
 var pageNo = 0;
+var pageTop = 0;
 
 function pdfTest() {
     ctx.beginPath();
@@ -41,7 +38,7 @@ function pdfTest2() {
 
 function drawText(s) {
     //ctx.text(cursor.x, pageTop + cursor.y, s);
-    ctx.fillText(s,cursor.x, pageTop + cursor.y);
+    ctx.fillText(s, cursor.x, pageTop + cursor.y);
     cursor.y += 20;
 }
 
@@ -49,11 +46,11 @@ function startNewPage() {
     pageNo += 1;
     ctx.strokeStyle = "lightGray";
     ctx.lineWidth = 4;
-    pageTop = (pageNo - 1) * (pageHeight + 20);
+    pageTop = (pageNo - 1) * (pagesize.height + 20);
     ctx.moveTo(0, pageTop);
     ctx.lineTo(800, pageTop);
-    ctx.lineTo(800, pageTop + pageHeight);
-    ctx.lineTo(0, pageTop + pageHeight);
+    ctx.lineTo(800, pageTop + pagesize.height);
+    ctx.lineTo(0, pageTop + pagesize.height);
     ctx.lineTo(0, pageTop);
     ctx.stroke();
     cursor.x = 10;
@@ -79,7 +76,7 @@ function createPDF(template, sectionName) {
     //   - Fields specs are replaced  i.e. "#project.ProjectName#-#inspection.InspectionNumber#"  --> "ABCReRoof-001.pdf"
     //   - Fields can specify values from the user, project or inspection entities.
 
-    templateSectionName = sectionName;
+    var templateSectionName = sectionName;
     var xmlString = template.templateXML;
 
     ///var paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
@@ -97,7 +94,7 @@ function createPDF(template, sectionName) {
         pageNumber = 1;  
         numberOfPages = 1;
         executeDirectives(getSection(xmlString, templateSectionName));
-        pageCountSave = numberOfPages;
+        var pageCountSave = numberOfPages;
         ///UIGraphicsEndPDFContext();
     }
 
@@ -125,7 +122,7 @@ function createPDF(template, sectionName) {
         pdfNamingTemplate = "InspectionReport";
     }
 
-    pdfFileName = replaceFieldnamesIn(pdfNamingTemplate);
+    var pdfFileName = replaceFieldnamesIn(pdfNamingTemplate);
     pdfFileName = pdfFileName.trim() + ".pdf";
     pdfFileName = replaceAll(pdfFileName,"%23");
     pdfFileName = replaceAll(pdfFileName,"'");
@@ -1463,7 +1460,7 @@ function setPDFNamingTemplate() {
 
 
 /*
-function drawLineWIthX(x, y, style) {
+function drawLineWithX(x, y, style) {
 
     if (!noGraphicsOutput) {
         CGContextRef currentContext = UIGraphicsGetCurrentContext();

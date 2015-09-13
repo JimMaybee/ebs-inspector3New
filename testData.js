@@ -1,6 +1,8 @@
 
 // The data model with templates --> projects --> inspections --> photos
 
+"use strict";
+
 var templates = [{templateName: 'Inspection Report', projects:
     [{projectName: 'Project1', clientName: 'Client1', inspections:
         [{inspectionNumber: 1, inspectorName: 'Ins1', photos:[
@@ -36,29 +38,4 @@ var project = projects[iProject];
 var inspection = inspections[iInspection];
 var photo = photos[iPhoto];
 
-testDataTests();
-
-function testDataTests() {
-
-
-// Tests - Fully qualified references
-showTD("templates[0].templateName");
-
-
-
-// Tests - List pointers
-
-
-// Tests - Form pointers
-
-}
-
-function showTDItem(s) {
-    console.log(s + "=" + eval(s));
-}
-
-function showTDList(a) {
-    for (var i in a) {
-        console.log()
-    }
-}
+// End

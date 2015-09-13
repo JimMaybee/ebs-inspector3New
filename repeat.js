@@ -1,10 +1,7 @@
 
 // repeat.js
 
-
 "use strict";
-
-
 
 function repeat1() {repeat()}
 function repeat2() {repeat()}
@@ -27,28 +24,27 @@ function repeat() {
     var untilWithin  = getStringAttribute("untilwithin", false);
 
     var forReqd = true;
-    if (countValue > 0 || memoLines.length > 0 || controlArray.length > 0 || paragraphs.length > 0 || files.length > 0 || editRegion.length > 0 || untilWithin.length > 0) forReqd = false;
+    if (countValue > 0 || memoLines.length > 0 || controlArray.length > 0 || paragraphs.length > 0 ||
+                          files.length > 0 || editRegion.length > 0 || untilWithin.length > 0) forReqd = false;
     var forValue = getStringAttribute("for", forReqd );
     if (memoLines.length > 0)    forValue = "MemoLines";
     if (controlArray.length > 0) forValue = "ControlArray";
     if (paragraphs.length > 0)   forValue = "Paragraphs";
-    //if (files.length > 0)        forValue = "Files";
+    //if (files.length > 0)      forValue = "Files";
     if (editRegion.length > 0)   forValue = "EditRegion";
     if (untilWithin.length > 0)  forValue = "UntilWithin";
 
     // Extract directives
 
     var repeatDirectives = activeEnclosedXML;
-    //var repeatCount;
-    //var tempDirectives;
 
     if (countValue > 0) {
         for (var i=start; i<countValue; i++) {
             var repeatCount = i + 1;
-            var tempDirectives = repeatDirectives.replaceAll("#repeatCount#", repeatCount);
+            var tempDirectives = repeatDirectives.replaceAll("#RepeatCount#", repeatCount);
             executeDirectives(tempDirectives);
         }
-/*
+
     } else if (forValue == "ControlArray") {
         var nEmptyLines = getStringAttribute("emptylines", false);
         var nMaxLines   = getStringAttribute("maxlines", false);
@@ -66,7 +62,7 @@ function repeat() {
             executeDirectives(tempDirectives);
         }
 
-
+/*
     } else if (forValue.hasPrefix("Files")) {
         NSFileManager *fm = [NSFileManager defaultManager];
         var paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true);
@@ -87,12 +83,12 @@ function repeat() {
         }
 
     } else if (forValue == "Inspections") {
-        Inspection *saveInspection = inspection;
-        var iMax =getIntAttribute("max",  false);
-        var sortField  =getStringAttribute("sortfield", false);
-        var startValue =getStringAttribute("startvalue", false);
-        startValue =getDataValue(startValue, false);
-        var endValue   =getStringAttribute("endvalue", false);
+        var saveInspection = inspection;
+        var iMax = getIntAttribute("max", false);
+        var sortField  = getStringAttribute("sortfield", false);
+        var startValue = getStringAttribute("startvalue", false);
+        startValue     = getDataValue(startValue, false);
+        var endValue   = getStringAttribute("endvalue", false);
         endValue =getDataValue(endValue, false);
         if (sortField.length == 0) sortField = "InspectionNumber";
 
@@ -102,43 +98,42 @@ function repeat() {
         var count = 0;
         var inRange = false;
         if (startValue.length == 0) inRange = true;
-        for (Inspection *inspection2 in insList) {
+        for (var inspection2 in insList) {
             inspection = inspection2;
             if (startValue.length > 0) {
                 //NSLog("Start %@ %",[self getDataValue:sortField required:false],startValue);
-                if ([self getDataValue:sortField required:false] == startValue) inRange = true;
+                if (getDataValue(sortField, false) == startValue) inRange = true;
             }
             if (inRange) {
-                repeatCount = [NSString stringWithFormat:"%i",.length+1];
-                tempDirectives = replaceAll(repeatDirectives,"#repeatCount#");
+                repeatCount = iCount + 1;
+                tempDirectives = repeatDirectives.replaceAll("#RepeatCount#", repeatCount);
 
-                executeDirectives( tempDirectives);
-            .length += 1;
-                if (.length > iMax && iMax > 0) break;
+                executeDirectives(tempDirectives);
+                iCount += 1;
+                if (iCount > iMax && iMax > 0) break;
             }
             if (endValue.length > 0) {
-                if ([self getDataValue:sortField required:false] == endValue) inRange = false;
-                //NSLog("Start %@ %",[self getDataValue:sortField required:false],endValue);
+                if (getDataValue(sortField, false) == endValue) inRange = false;
             }
         }
         inspection = saveInspection;
 
     } else if (forValue == "Projects") {
-        Project *saveProject = project;
+        var saveProject = project;
         var projList = [EBUtil sortProjectSet: project.template.projects sortField:"ProjectName"];
         var repeatCount;
         var tempDirectives;
         var count = 0;
 
-        for (Project *project2 in projList) {
+        for (var project2 in projList) {
             project = project2;
             var insList = [EBUtil sortInspectionSet: project.inspections sortField:"InspectionNumber"];
             if (project.inspections.length > 0) {
                 inspection = insList[0];
             }
-            repeatCount = [NSString stringWithFormat:"%i", count+1];
-            tempDirectives = replaceAll(repeatDirectives,"#repeatCount#");
-            executeDirectives( tempDirectives);
+            repeatCount = count+1;
+            tempDirectives = repeatDirectives.replaceAll("#RepeatCount#",repeatCount);
+            executeDirectives(tempDirectives);
             count += 1;
         }
         project = saveProject;
@@ -148,11 +143,13 @@ function repeat() {
         // The directives in this report are executed for each group
         //   - useGroupPhotos is used to tell the DrawPhotos method to use groupPhotos
 
-        useGroupPhotos = true;
+        var useGroupPhotos = true;
+        var groupCell;
+        var groupPhotos;
         var sortedPhotos = [EBUtil sortPhotoSet:inspection.photos];
         NSMutableArray *temp = [[NSMutableArray alloc] init];
 
-        for (Photo *groupPhoto in sortedPhotos) {
+        for (var groupPhoto in sortedPhotos) {
             var isGroupCell = [groupPhoto xmlData:"CellIdentifier"] == "GroupCell";
 
             if (isGroupCell && temp.length ==0) {
@@ -161,20 +158,20 @@ function repeat() {
 
             } else if (isGroupCell) {
                 groupPhotos = temp;
-                executeDirectives( repeatDirectives);
+                executeDirectives(repeatDirectives);
                 groupCell = groupPhoto;
-                [temp removeAllObjects];
+                temp = [];
 
             } else {
-                if ([groupPhoto xmlData:"Used"] == "true" || includefalsetUsedPhotos) {
-                    [temp addObject:groupPhoto];
+                if (groupPhoto.Used.isEqual("Yes") || includeNottUsedPhotos) {
+                    temp.push(groupPhoto);
                 }
             }
         }
 
         if (temp.length > 0) {
             groupPhotos = temp;
-            executeDirectives( repeatDirectives);
+            executeDirectives(repeatDirectives);
         }
         useGroupPhotos = false;
 
@@ -189,16 +186,16 @@ function repeat() {
         var lastInspectionNumber = "";
 
         for (Photo *thisPhoto in sortedPhotos) {
-            if (![thisPhoto xmlData:"InspectionNumber"] == lastInspectionNumber) {
+            if (thisPhoto.InspectionNumber != lastInspectionNumber) {
                 if (temp.length > 0) {
                     groupPhotos = temp;
                     photo = groupPhotos[0];
                     executeDirectives( repeatDirectives);
                     [temp removeAllObjects];
                 }
-                lastInspectionNumber = [thisPhoto xmlData:"InspectionNumber"];
+                lastInspectionNumber = thisPhoto.InspectionNumber;
             }
-            [temp addObject:thisPhoto];
+            temp.push(thisPhoto);
         }
 
         if (temp.length > 0) {
@@ -220,6 +217,7 @@ function repeat() {
         }
         var startCursorY = cursorY;
         var iPhoto = 0;
+        var nextPhoto;
         for (Photo *thisPhoto in sortedPhotos) {
             photo = thisPhoto;
             if (iPhoto < sortedPhotos.length - 1) {
@@ -235,14 +233,14 @@ function repeat() {
         }
 
     } else if (forValue == "ThisPhotoInPreviousInspections") {
-        var photoFileName = [photo xmlData:"FileName"];
-        Photo *savePhoto = photo;
+        var photoFileName = photo.FileName;
+        var savePhoto = photo;
         var inspectionsForThisProject =  [EBUtil sortInspectionSet:inspection.project.inspections];
         var thisInspection = [savePhoto.inspection.valueForSorting intValue];
-        for (Inspection *previousInspection in inspectionsForThisProject) {
+        for (var previousInspection in inspectionsForThisProject) {
             if ([previousInspection.valueForSorting intValue] < thisInspection){
-                for (Photo *matchingPhoto in previousInspection.photos) {
-                    if ([matchingPhoto xmlData:"FileName"].isEqual(photoFileName)) {
+                for (var matchingPhoto in previousInspection.photos) {
+                    if (matchingPhoto.FileName.isEqual(photoFileName)) {
                         photo = matchingPhoto;
                         inspection = photo.inspection;
                         executeDirectives( repeatDirectives);
@@ -254,18 +252,6 @@ function repeat() {
         photo = savePhoto;
         inspection = photo.inspection;
 
-    } else if (forValue == "DownloadGroups") {
-        if (![cloud open:"USB Download"]) return;
-        PFQuery *query = [PFQuery queryWithClassName:"EBCloudUSB"];
-        [query whereKey:"A.lengthID" equalTo:[Device a.lengthID]];
-        [query orderByDescending:"createdAt"];
-        [query setLimit:1000];
-
-        for (pfGroup in [query findObjects]) {
-            if (!pfGroup["DeleteFlag"] == "true") {
-                executeDirectives( repeatDirectives);
-            }
-        }
 
     } else if (forValue == "Templates") {
         device  = [Device MR_findFirst];
@@ -277,22 +263,11 @@ function repeat() {
         }
         template = templateSave;
 
-    } else if (forValue == "A.lengths") {
-
-        // Connect to the cloud and repeat for all EBA.length objects
-        if (![cloud open:"A.length Admin"]) return;
-        PFQuery *query = [PFQuery queryWithClassName:"EBA.length"];
-        [query orderByAscending:"A.lengthName"];
-        [query setLimit:1000];
-        for (pfA.lengthForRepeat in [query findObjects]) {
-            executeDirectives( repeatDirectives);
-        }
-
     } else if (forValue == "MemoLines") {
-        var memo =getDataValue(memoLines, true);
+        var memo = getDataValue(memoLines, true);
         var lines = [NSArray alloc] initWithArray:[memo.split("\n"]);
         var useBullets = [self getStringAttribute:"Bullets" required:false] == "true";
-        for (repeatMemoLine in lines) { // memoLine is private within this class.
+        for (var repeatMemoLine in lines) { // memoLine is private within this class.
             var b1 = "";
             var b2 = "";
             defineVars["#IsBullet1#"] = false;
@@ -345,14 +320,14 @@ function repeat() {
                 // Print the section if there is content and this is a blank line or we are at the end
                 if (section.length > 0 && (paragraph.length == 0 || memo.length == 0)) {
                     repeatParagraph = section;
-                    executeDirectives( repeatDirectives);
+                    executeDirectives(repeatDirectives);
                     section="";
                     if (keepTogetherTestActive) break;  // draw first paragraph only during KeepTogether test
                 }
 
             } else {
                 repeatParagraph = paragraph;
-                if (paragraph.length > 0) executeDirectives( repeatDirectives);
+                if (paragraph.length > 0) executeDirectives(repeatDirectives);
             }
         }
 
@@ -407,7 +382,6 @@ function repeat() {
         activeEditRegion = "";
 
     } else if (forValue == "UntilWithin") {
-
         var count = 0;
         while (true) {
 
@@ -420,7 +394,6 @@ function repeat() {
             executeDirectives( tempDirectives);
             count += 1;
         }
-
 
     } else if ([template xmlDataExists:forValue]) {
         var memo = [template xmlData:forValue];

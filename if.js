@@ -4,7 +4,6 @@
 var ifConditionValue;
 var lastIfResult;
 
-
 "use strict";
 
 function if0()  {
@@ -139,7 +138,7 @@ function ifDirective() {
         iLocn = empty.indexOf(",");
         if (iLocn != -1) {
             executeIf = true;
-            // Multiple field names provided - check the values until a falsen-empty field is found
+            // Multiple field names provided - check the values until a non-empty field is found
             aFields = empty.split(",");
             for (var fieldNameIndex in aFields) {
                 fieldName = aFields[fieldNameIndex];
@@ -249,4 +248,3 @@ function else0() {
         executeDirectives(activeEnclosedXML);
     }
 }
-

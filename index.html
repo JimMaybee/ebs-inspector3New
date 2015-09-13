@@ -10,51 +10,114 @@
     <script type="text/javascript" src="http://www.parsecdn.com/js/parse-1.2.12.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
     <!-- <script src="jsPDF/dist/jspdf.debug.js"></script> -->
+
     <script src="cursor.js"></script>
     <script src="forms.js"></script>
     <script src="generator.js"></script>
+    <script src="testData.js"></script>
     <script src="getDataValue.js"></script>
     <script src="if.js"></script>
+    <script src="macros.js"></script>
+    <script src="repeat.js"></script>
+    <script src="reports.js"></script>
     <script src="server.js"></script>
     <script src="styles.js"></script>
-    <script src="support.js"</script>
-    <script src="testData.js"></script>
+    <script src="support.js"></script>
 
-    <!--
-    <script src="canvas.js"></script>
-    <script src="canvasObject.js"> </script>
-    <script src="macros.js"></script>
+    <!-- <script src="canvas.js"></script>
+    <script src="canvasObject.js"></script>
     <script src="photos.js"></script>
-    <script src="repeat.js"></script>
     <script src="reportPaging.js"></script>
-    <script src="reports.js"></script>
     <script src="save.js"></script>
-    <script src="selects.js"></script>
-    -->
+    <script src="selects.js"></script> -->
 
 </head>
 <body>
 
-<div id="testSelect" style="position:absolute; top:25px; left:50px; height:40px; width:612px;"> </div>
-<div id="editBtns" style="position:absolute; top:25px; left:300px; height:40px; width:300px;">
-    <button onclick="runTest()">Run</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<div id="selectedTest" style="position:absolute; top:25px; left:50px; height:40px; width:612px;"> </div>
+<div id="editBtns" style="position:absolute; top:25px; left:50px; height:40px; width:1200px;">
+    Select test:&nbsp;&nbsp;
+    <select id='TestName'>;
+        <option value='Not loaded'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</option>;
+    </select>
+    <button onclick="refreshTests()">Refresh</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <button onclick='loadTest()'>Load</button>
+    <button onclick="runTest()">Run</button>
     <button onclick="saveTest()">Save</button>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <!--
+    Template:
+    <select id="selectedTemplate">
+        <option value="RAM1">RAM1</option>
+        <option value="RAM2">RAM2</option>
+        <option value="Pinnacle">Pinnacle</option>
+        <option value="MackKirk1">MackKirk1</option>
+        <option value="MackKirk2">MackKirk2</option>
+    </select>
+    &nbsp;&nbsp;&nbsp;
+    Section:
+    <select id="selectedSection">
+        <option value="Template">Template</option>
+        <option value="Project">Project</option>
+        <option value="Inspection">Inspection</option>
+        <option value="Photo">Photo</option>
+    </select>
+    &nbsp;&nbsp;&nbsp;
+    <button onclick="displayForm()">Display</button>
+    <button onclick="addForm()">Add</button>
+    <button onclick="editForm()">Edit</button>
+     -->
 </div>
 
-<textarea id="testXML"  style="position:absolute; top:100px; left:50px; height:600px; width:1000px; border:1px solid; font-size:14px;"></textarea>
-<div id="formtest"   style="position:absolute; top:50px; left:1060px; height:600px; width:612px; border:1px solid;"></div>
-
+<textarea id="testXML"  style="position:absolute; top:50px; left:50px; height:600px; width:1000px; border:1px solid; font-size:14px;"></textarea>
+<div style="position:absolute; top:50px; left:1060px; border:1px solid; overflow:scroll;">
+    <canvas id="pdfCanvas" width="612" height="600px" style=" overflow:scroll;"> </canvas>
+</div>
+<div id="formtest"   style="position:absolute; top:50px; left:1060px; height:600px; width:612px; border:1px solid; overflow:scroll;"></div>
 </body>
 <script>
 
     "use strict";
-
+/*
+    var c = document.getElementById("pdfCanvas");
+    var ctx = c.getContext("2d");
+    ctx.font = "14px Arial";
+    moveTop();
+    drawText("Page 1-1");
+    cursor.y += 50;
+    drawText("page 1-2");
+    pagesize.height = 500;
+    startNewPage();
+    cursor.y += 50;
+    drawText("Page 2");
+    startNewPage();
+    cursor.y += 50;
+    drawText("Page 3");
+*/
     $(document).ready(function () {
-        serverSortField = "Seq";
-        serverLoadTable("EBTest", ["objectId", "Name", "TemplateXML"], "loadSuccess()");
+
+        // Restore previous selections and xml and execute.
+        getLocalStorage();
+        var xml = $("#testXML").val();
+        if (xml.length > 0) {
+            $("#formtest").empty();
+            setDefaultStyles();
+            executeDirectives(removeComments(xml));
+        }
+
+        if (serverTable == undefined) {
+            serverSortField = "Seq";
+            serverLoadTable("EBTest", ["objectId", "Name", "TemplateXML"], "loadSuccess()");
+        }
     });
 
+    function refreshTests() {
+        serverSortField = "Seq";
+        serverLoadTable("EBTest", ["objectId", "Name", "TemplateXML"], "loadSuccess()");
+    }
+
     function loadSuccess() {
+        localStorage.setItem("serverTable",serverTable);
         var html = "Select test:&nbsp;&nbsp;<select id='TestName'>\n";
         for (var iTest = 0; iTest<serverTable.length; iTest++) {
             var name = serverTable[iTest].Name;
@@ -67,20 +130,29 @@
     }
 
     function loadTest() {
-        var xml = serverTable[$("#testSelect :selected").index()].TemplateXML;
+        var xml = serverTable[$("#selectedTest :selected").index()].TemplateXML;
         $("#testXML").empty();
         $("#testXML").val(xml);
     }
 
+
     function runTest() {
-        var xml = $("#testXML").val();
-        if (xml.length == 0) {
+        if ($("#testXML").val().length == 0) {
             alert("No test is loaded.");
             return;
         }
+
+        $("#formtest").empty();
+        setDefaultStyles();
+        executeDirectives(removeComments($("#testXML").val()));
+        saveLocalStorage();
+
+    }
+
+    function removeComments(xml) {
+        var xml = $("#testXML").val();
         var xml = xml.replaceAll("‘", "'").replaceAll("’", "'").replaceAll('"', "'").replaceAll("“", "'").replaceAll("”", "'");
         $("#testXML").val(xml);
-
         var xmlWithOutComments = "";
         var aLines = xml.split("\n");
         for (var iLine = 0; iLine < aLines.length; iLine++) {
@@ -89,20 +161,31 @@
                 xmlWithOutComments += line + "\n";
             }
         }
-        $("#formtest").empty();
-        setDefaultStyles();
-        //init();
-        //startNewGenerate();
-        executeDirectives(xmlWithOutComments);
+        return xmlWithOutComments;
+    }
+
+    function getLocalStorage() {
+        $("#selectedTest").val(localStorage.getItem("selectedTest"));
+        //$("#selectedTemplate").val(localStorage.getItem("selectedTemplate"));
+        //$("#selectedSection").val(localStorage.getItem("selectedSection"));
+        $("#testXML").val(localStorage.getItem("xml"));
+        serverTable = localStorage.getItem("serverTable");
+    }
+
+    function saveLocalStorage() {
+        localStorage.setItem("selectedTest",$("#selectedTest :selected").index());
+        //localStorage.setItem("selectedTemplate",$("#selectedTemplate :selected").index());
+        //localStorage.setItem("selectedSectio ",$("#selectedSection :selected").index());
+        localStorage.setItem("xml", $("#testXML").val());
     }
 
     function saveTest() {
-        if (serverTable[$("#testSelect :selected").index()].objectId == undefined) {
+        if (serverTable[$("#selectedTest :selected").index()].objectId == undefined) {
             alert("No test is loaded.");
 
         } else {
             var xml = $("#testXML").val();
-            serverUpdateRow("EBTest", serverTable[$("#testSelect :selected").index()].objectId, {TemplateXML: xml}, "onUpdateSuccess()");
+            serverUpdateRow("EBTest", serverTable[$("#selectedTest :selected").index()].objectId, {TemplateXML: xml}, "onUpdateSuccess()");
             serverTable[0].TemplateXML = xml;
         }
     }
